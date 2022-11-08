@@ -1,0 +1,50 @@
+service: cif-serverless
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  region: ap-southeast-1
+  apiGateway:
+    restApiId: 14wjktjn37
+    restApiRootResourceId: 33ybxoxead
+    description: API endpoints for CIF serverless
+  runtime: nodejs12.x
+  stage: dev
+  lambdaHashingVersion: '20201221'
+  environment:
+    FIMSConstraints: 'FIMSConstraints'
+    FIMSOperations : 'FIMSOperations'
+    FIMSConstraintsID: 'FIMSConstraintsID'
+    FIMSConstraintsNotifications: 'FIMSConstraintsNotifications'
+  httpApi:
+    cors: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchGetItem
+            - dynamodb:BatchWriteItem
+          Resource: 
+            - "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.FIMSConstraints}"
+            - "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.FIMSOperations}"
+            - "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.FIMSConstraintsID}"
+            - "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.FIMSConstraintsNotifications}"
+
+functions:
+  cif-serverless:
+    handler: handler.handler
+    name: cif-serverless
+    events:
+      - http:
+          method: ANY
+          path: /{proxy+}
+
+plugins:
+  - serverless-offline
